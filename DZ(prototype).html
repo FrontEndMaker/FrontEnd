@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>DZ(prototype)</title>
+</head>
+<body>
+	<script>
+
+		// Написать класс Сalculator . Создать класс SqrCalc и унаследовать его от оригинального калькулятора где результат удваивается. Реализация на  es5  и es6
+
+		// ES5
+
+		function Calculator(a,b) {
+			this.a = a;
+			this.b = b;
+			this.result = 0;
+		}
+
+		Calculator.prototype.sum = function() {
+			return this.result = this.a + this.b;
+		}
+		Calculator.prototype.dif = function() {
+			return this.result = this.a - this.b;
+		}
+		Calculator.prototype.div = function() {
+			if (this.b == 0) {
+				return "На ноль делить нельзя"
+			}
+			else {
+				return this.result = this.a / this.b
+			}
+		}
+		Calculator.prototype.mul = function() {
+			return this.result = this.a * this.b;
+		}
+		
+		var item = new Calculator(30, 10);
+		console.log('Калькулятор(ES5)')
+
+		console.log(item.sum());
+		console.log(item.dif());
+		console.log(item.div());
+		console.log(item.mul());
+
+		SqrCalc.prototype = Object.create(Calculator.prototype);
+		SqrCalc.prototype.constructor = SqrCalc;
+
+		function SqrCalc(result) {
+			
+			Calculator.apply(this, arguments);
+			this.result = result;
+			this.double = function() {
+				if (isNaN(this.result)) {
+					return "Невозможно удвоить"
+				}
+				else {
+					return this.result * 2;
+				}
+			}
+		}
+
+		console.log('');
+		console.log('Удвоенные значения(ES5)')
+
+		var item2 = new SqrCalc(item.sum());
+		console.log(item2.double());
+
+		var item2 = new SqrCalc(item.dif());
+		console.log(item2.double());
+
+		var item2 = new SqrCalc(item.div());
+		console.log(item2.double());
+
+		var item2 = new SqrCalc(item.mul());
+		console.log(item2.double());
+
+
+		// ES6
+
+		class Calculator2 {
+			constructor (x, y) {
+				this._x  = x
+				this._y = y
+				this.result = 0;
+			}
+			get sum() { 
+				return this.result = this._x + this._y;
+			}
+			get dif() { 
+				return this.result = this._x - this._y;
+			}
+			get div() { 
+				if (this._y == 0) {
+					return "На ноль делить нельзя"
+				}
+				else {
+					return this.result = this._x / this._y
+				}
+			}
+			get mul() { 
+				return this.result = this._x * this._y;
+			}
+		}
+
+		var calc = new Calculator2(50, 20);
+
+		console.log('')
+		console.log('Калькулятор(ES6)')
+
+		console.log(calc.sum);
+		console.log(calc.dif);
+		console.log(calc.div);
+		console.log(calc.mul);
+
+
+		class SqrCalc2 extends Calculator2 {
+			constructor (x, y, result) {
+				super(x, y)
+				this.result = result
+			}
+			get getDouble() {
+				if (isNaN(this.result)) {
+					return "Невозможно удвоить"
+				}
+				else {
+					return this.result * 2;
+				}
+			}
+		}
+
+		console.log('')
+		console.log('Удвоенные значения(ES6)')
+
+		var calc2 = new SqrCalc2(this._x, this._y, calc.sum);
+		console.log(calc2.getDouble);
+		var calc2 = new SqrCalc2(this._x, this._y, calc.dif);
+		console.log(calc2.getDouble);
+		var calc2 = new SqrCalc2(this._x, this._y, calc.div);
+		console.log(calc2.getDouble);
+		var calc2 = new SqrCalc2(this._x, this._y, calc.mul);
+		console.log(calc2.getDouble);
+
+
+
+		// Напишите функцию printNumbersInterval(), которая последовательно выводит в консоль числа от 1 до 20, с интервалом между числами 100 мс. То есть, весь вывод должен занимать 2000 мс, в течение которых каждые 100 мс в консоли появляется очередное число.
+
+		console.log('');
+		console.log('Числа с интервалом');
+
+		(function printNumbersInterval() {
+			var i = 1;
+			var interval = setInterval(function() {
+				console.log(i);
+				i++;
+				if (i > 20) {
+					clearInterval(interval)
+				}
+			}, 100);
+		}());
+	</script>
+</body>
+</html>
