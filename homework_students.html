@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<script>
+        'use strict';
+
+        let studentsGroup = [];
+        let studentsGrades = [];
+        let student = {
+            name: 'Alexey', 
+            surname: 'Petrov', 
+            grades: [3,3,3,4,5,6],
+
+            // Полное имя студента
+            fullName: function() {
+                return this.name + " " + this.surname
+            },
+
+            //Средняя оценка студента
+            gradesAvarage: function() {
+                var avg = this.grades.reduce(function(a, b) {
+                    return a + b
+                });
+                return (avg / this.grades.length).toFixed(2)
+            }   
+        };
+
+        class Student {
+            constructor({ name: name, surname: surname, grades: arg }) {
+                this.name = name
+                this.surname = surname
+                this.grades = arg
+
+                //Создаем массив из всех созданых студентов
+                studentsGroup.push({ name: this.name, surname: this.surname, grades: this.grades })
+            }
+
+            //Возвращаем массив из всех созданых студентов
+            static get group() {
+                return studentsGroup
+            }
+
+            //Модифицированный список студентов
+            static get showAllStudents() {
+                return function() {
+
+                    //Добавляем проперти "average" для всех студентов для сортировки
+                    studentsGroup.forEach(function(person){
+                        Object.defineProperty(person, 'average', {value: student.gradesAvarage.apply(person)});   
+                    })
+
+                    let sortedGroup = studentsGroup.slice();
+
+                    //Сортируем массив по "average"
+                    sortedGroup.sort(function(a, b){
+                        return b.average - a.average;
+                    });
+
+                    //Создаем массив студентов со средними оценками
+                    for(let n of sortedGroup) {
+                        studentsGrades.push(student.fullName.apply(n) + '. Середній бал - ' + student.gradesAvarage.apply(n))
+                    }
+
+                    //Возвращаем массив студентов со средними оценками
+                    return studentsGrades
+                }
+            }
+
+            //Возвращаем лучшего студента
+            static showBestStudent() {
+                return studentsGroup[0].name + ' ' + studentsGroup[0].surname + ' - кращий студент курсу. Середній бал = ' + studentsGroup[0].average
+            }
+
+            //Возвращаем объект студента
+            static get bestStudent() {
+                return "Не пойму что здесь должно выводиться"
+            }
+        }
+
+        let student1 = new Student ({name: 'Ivan', surname: 'Ivanov', grades: [4,5,5]});
+        let student2 = new Student ({name: 'Semen', surname: 'Semenov', grades: [3,5,5]});
+        let student3 = new Student ({name: 'Petr', surname: 'Petrov', grades: [4,3,5]});
+
+        console.log('Полное имя студента')
+        console.log(student.fullName.call(student1))
+        console.log('-----------------------------------')
+
+        console.log('Средний бал студента')
+        console.log(student.gradesAvarage.call(student1))
+        console.log('-----------------------------------')
+
+        console.log('Список всех студентов')
+        console.log(Student.group)
+        console.log('-----------------------------------')
+
+        console.log('Модифицированный список всех студентов')
+        console.log (Student.showAllStudents())
+        console.log('-----------------------------------')
+
+        console.log('Лучший студент')
+        console.log (Student.showBestStudent())
+        console.log('-----------------------------------')
+
+        console.log('Объект студента')
+        console.log (Student.bestStudent)
+    </script>
+</body>
+</html>
