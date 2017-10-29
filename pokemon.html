@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Pokemon</title>
+	<style>
+	h2 {
+		text-transform: uppercase;
+	}
+	li:hover {
+		color: blue;
+		cursor: pointer
+	}
+</style>
+</head>
+<body>
+	<h1>Покемоны</h1>
+	<hr>
+	<div id="info">
+		<label for="qnt">Введите количество покемонов (1 - 949)</label>
+		<input id="qnt" type="number" min="1" max="949" value="1"><br />
+		<button id="load" style="margin: 10px 0">Загрузить</button>
+		<div id="pokemons">
+			<div class="loading"></div>
+			<ol id="pokemons__list"></ol>
+		</div>
+	</div>
+	<div class="description"></div>
+
+	<script>
+		'use strict';
+		var city = localStorage.getItem('city');
+		let ol = document.getElementById('pokemons__list');
+		let pokemon = document.getElementsByClassName("description");
+
+		document.getElementById('load').addEventListener("click", ()=> {
+			ol.innerHTML = '';
+			pokemon[0].innerHTML='';
+			let quantity = document.getElementById('qnt').value
+			httpGet('http://pokeapi.co/api/v2/pokemon?limit=' + quantity)
+			.then(response => {
+				let data = JSON.parse(response);
+				data.results.map((pokemon) => {
+					let node = document.createElement("LI");                 
+					let textnode = document.createTextNode(pokemon.name);      
+					node.setAttribute("data", pokemon.url);
+					node.appendChild(textnode);                              
+					document.getElementById("pokemons__list").appendChild(node);
+				});
+			})
+			.catch(error => {
+				alert(error);
+			});
+		})
+
+		ol.addEventListener('click', (e) => {
+			document.getElementById('pokemons__list').innerHTML='';
+			pokemon[0].innerHTML='';
+			var target = e.target;
+			if (target.tagName === 'LI'){
+				httpGet(target.getAttribute("data"))
+				.then(response => {
+					let data = JSON.parse(response);
+					let description = '<h2>' + data.name + '</h2>'
+					+ '<p>Вес покемона: ' + data.weight + '</p>'
+					+ '<p>Рост покемона: ' + data.height + '</p>'
+					+ '<button id="back" onclick="getBack()">Назад</button>';
+					pokemon[0].innerHTML=description
+				})
+				.catch(error => {
+					alert(error);
+				});
+			}
+		});
+
+		function httpGet(url) {
+			return new Promise((resolve, reject) => {
+
+				let xhr = new XMLHttpRequest();
+				let el = document.getElementsByClassName("loading");
+				el[0].innerHTML = 'Загрузка...';
+				xhr.open('GET', url, true);
+				xhr.onload = function() {
+					if (this.status == 200) {
+						resolve(this.response);
+						el[0].innerHTML = '';
+					} else {
+						let error = new Error(this.statusText);
+						error.code = this.status;
+						reject(error);
+					}
+				};
+
+				xhr.onerror = function() {
+					reject(new Error("Network Error"));
+				};
+
+				xhr.send();
+			});
+		}
+
+		function getBack() {
+			alert('Переход на предыдущую страницу')
+		}
+	</script>
+</body>
+</html>
