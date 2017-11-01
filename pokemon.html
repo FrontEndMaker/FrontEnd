@@ -17,32 +17,153 @@
 	<h1>Покемоны</h1>
 	<hr>
 	<div id="info">
-		<label for="qnt">Введите количество покемонов (1 - 949)</label>
-		<input id="qnt" type="number" min="1" max="949" value="1"><br />
-		<button id="load" style="margin: 10px 0">Загрузить</button>
+		<div class="block">
+			<label for="qnt">Введите количество покемонов (1 - 949)</label>
+			<input id="qnt" type="number" min="1" max="949"><br />
+			<button id="load" style="margin: 10px 0">Загрузить</button>
+		</div>
 		<div id="pokemons">
-			<div class="loading"></div>
 			<ol id="pokemons__list"></ol>
+			<div class="loading"></div>
 		</div>
 	</div>
 	<div class="description"></div>
 
 	<script>
 		'use strict';
+		let url, offset;
 		let ol = document.getElementById('pokemons__list');
 		let pokemon = document.getElementsByClassName("description");
+		let quantity = sessionStorage.getItem('quantity');
+		let buttonNext = document.getElementById('next');
+		let block = document.getElementsByClassName("block");
 
+		// Забираем значение с input
+		quantity = document.getElementById('qnt').value
+
+		// Если значение количества сохранено в sessionStorage передаем в input, если нет, то по умолчанию загружаем 15
+		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset')) : (quantity = 15)
+
+		// Если url сохранен в sessionStorage загружаем данные по url, если нет, то загружаем весь список
+		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll()
+
+		// Загружаем покемонов по клику
 		document.getElementById('load').addEventListener("click", ()=> {
+
+			// Очищаем список покемонов		
 			ol.innerHTML = '';
+
+			// Очищаем данные о покемоне если есть
 			pokemon[0].innerHTML='';
-			let quantity = document.getElementById('qnt').value
-			httpGet('http://pokeapi.co/api/v2/pokemon?limit=' + quantity)
+
+			// Сохраняем в sessionStorage значение количества из input
+			sessionStorage.setItem('quantity', document.getElementById('qnt').value);
+
+			// Записываем в переменную значение количества из input
+			quantity = document.getElementById('qnt').value
+
+			// Записываем в первоначальный offset значение количества для подгрузки покемонов
+			offset = quantity;
+
+			// Загружаем весь список покемонов
+			showAll()
+
+			// Сохраняем в sessionStorage текущее значение количества покемонов
+			sessionStorage.setItem('offset', offset);
+
+			// Скрываем кнопку подрузки покемонов, если она есть
+			if(buttonNext) {
+				buttonNext.style.display='none';
+			} 
+		})
+
+		// Клик по покемону
+		ol.addEventListener('click', (e) => {
+
+			// Очищаем div со списком покемонов от всех тегов
+			document.getElementById('pokemons__list').innerHTML='';
+
+			// Очищаем данные о покемоне если есть
+			pokemon[0].innerHTML='';
+
+			var target = e.target;
+			if (target.tagName === 'LI'){
+
+				// Достаем url покемона из data-attribute и сохраняем в sessionStorage
+				url = sessionStorage.setItem('url', target.getAttribute("data-url"));
+
+				// Сохраняем в sessionStorage текущее количество покемонов в списке
+				sessionStorage.setItem('offset', offset);
+
+				// Достаем url покемона из data-attribute и показываем его описание
+				showDescription(target.getAttribute("data-url"))
+			}
+		});
+
+		// Отправляем запрос
+		function httpGet(url) {
+			return new Promise((resolve, reject) => {
+				let xhr = new XMLHttpRequest();
+
+				// Показываем индикатор загрузки пока идет запрос
+				let el = document.getElementsByClassName("loading");
+				el[0].innerHTML = 'Загрузка...';
+
+				// Скрываем кнопку подгрузги покемонов, если она есть
+				buttonNext = document.getElementById('next')
+				if(buttonNext) {
+					buttonNext.style.display='none';
+				}
+
+				xhr.open('GET', url, true);
+				xhr.onload = function() {
+					if (this.status == 200) {
+						resolve(this.response);
+
+						// Скрываем индикатор загрузки запроса
+						el[0].innerHTML = '';
+
+						// Создаем кнопку подгрузки покемонов если ее нет
+						if(!buttonNext) {
+							createNextButton()
+						}
+
+						// Показываем кнопку подгрузки покемонов если она скрыта
+						else if(buttonNext) {
+							buttonNext.style.display='block';
+						}
+					} 
+					else {
+						let error = new Error(this.statusText);
+						error.code = this.status;
+						reject(error);
+					}
+				};
+				xhr.onerror = function() {
+					reject(new Error("Network Error"));
+				};
+				xhr.send();
+			});
+		}
+
+		// Загрузка всего списка покемонов
+		function showAll(offsetNumber, limitNumber = quantity) {
+
+			// Показываем блок выбора количества
+			block[0].style.display='block';
+
+			// Передаем параметры запроса
+			httpGet('http://pokeapi.co/api/v2/pokemon?limit=' + limitNumber + '&offset=' + offsetNumber)
 			.then(response => {
 				let data = JSON.parse(response);
+
+				// Выводим на экран список покемонов
 				data.results.map((pokemon) => {
-					let node = document.createElement("LI");                 
-					let textnode = document.createTextNode(pokemon.name);      
-					node.setAttribute("data", pokemon.url);
+					let node = document.createElement("LI");
+					let textnode = document.createTextNode(pokemon.name);
+
+					// Записываем url покемона в data-attribute
+					node.setAttribute("data-url", pokemon.url);
 					node.appendChild(textnode);                              
 					document.getElementById("pokemons__list").appendChild(node);
 				});
@@ -50,56 +171,86 @@
 			.catch(error => {
 				alert(error);
 			});
-		})
+		}
 
-		ol.addEventListener('click', (e) => {
-			document.getElementById('pokemons__list').innerHTML='';
-			pokemon[0].innerHTML='';
-			var target = e.target;
-			if (target.tagName === 'LI'){
-				httpGet(target.getAttribute("data"))
-				.then(response => {
-					let data = JSON.parse(response);
-					let description = '<h2>' + data.name + '</h2>'
-					+ '<p>Вес покемона: ' + data.weight + '</p>'
-					+ '<p>Рост покемона: ' + data.height + '</p>'
-					+ '<button id="back" onclick="getBack()">Назад</button>';
-					pokemon[0].innerHTML=description
-				})
-				.catch(error => {
-					alert(error);
-				});
-			}
-		});
+		// Показываем описание покемона
+		function showDescription(url) {
 
-		function httpGet(url) {
-			return new Promise((resolve, reject) => {
+			// Скрываем блок выбора количества
+			block[0].style.display='none';
 
-				let xhr = new XMLHttpRequest();
-				let el = document.getElementsByClassName("loading");
-				el[0].innerHTML = 'Загрузка...';
-				xhr.open('GET', url, true);
-				xhr.onload = function() {
-					if (this.status == 200) {
-						resolve(this.response);
-						el[0].innerHTML = '';
-					} else {
-						let error = new Error(this.statusText);
-						error.code = this.status;
-						reject(error);
-					}
-				};
+			httpGet(url)
+			.then(response => {
+				let data = JSON.parse(response);
 
-				xhr.onerror = function() {
-					reject(new Error("Network Error"));
-				};
+				// Выводим на экран данные о покемоне
+				let description = '<h2>' + data.name + '</h2>'
+				+ '<p>Вес покемона: ' + data.weight + '</p>'
+				+ '<p>Рост покемона: ' + data.height + '</p>'
+				+ '<p>Опыт: ' + data.base_experience + '</p>'
+				+ '<button id="back" onclick="getBack()">Назад</button>';
+				pokemon[0].innerHTML=description
 
-				xhr.send();
+				// Скрываем кнопку подгрузки покемонов, если она есть
+				buttonNext = document.getElementById('next')
+				if(buttonNext) {
+					buttonNext.style.display='none';
+				}
+			})
+			.catch(error => {
+				alert(error);
 			});
 		}
 
+		// Возвращаемся к списку покемонов
 		function getBack() {
-			alert('Переход на предыдущую страницу')
+
+			// Удаляем url в sessionStorage
+			sessionStorage.removeItem('url')
+
+			// Очищаем список покемонов
+			ol.innerHTML = '';
+
+			// Очищаем описание покемонов
+			pokemon[0].innerHTML='';
+
+			// Передаем количество покемонов для создания списка из sessionStorage
+			quantity = sessionStorage.getItem('offset')
+
+			// Загружаем список покемонов
+			showAll()
+		}
+
+		// Подгружаем покемонов
+		function loadNext() {
+
+			// Записываем в первоначальный offset значение количества для подгрузки покемонов
+			offset = quantity;
+
+			// Подгружаем покемонов по клику
+			document.getElementById('next').addEventListener('click', (e) => {
+
+				// Загружаем список покемонов с переданными параметрами
+				showAll(offset, 10)
+
+				// Добавляем каждый раз по 10 покемонов в offset для подгрузки
+				offset = Number(offset) + 10;
+
+				// Сохраняем в sessionStorage текущее количество покемонов в списке
+				sessionStorage.setItem('offset', offset);
+			})
+		}
+
+		// Создаем кнопку подгрузки покемонов
+		function createNextButton() {
+			let button = document.createElement("BUTTON");
+			button.setAttribute("id", "next");
+			let buttonText = document.createTextNode('Следующие 10');
+			button.appendChild(buttonText);  
+			document.getElementById("pokemons").appendChild(button);
+
+			// Подгружаем покемонов по клику
+			loadNext()
 		}
 	</script>
 </body>
