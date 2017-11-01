@@ -42,10 +42,10 @@
 		quantity = document.getElementById('qnt').value
 
 		// Если значение количества сохранено в sessionStorage передаем в input, если нет, то по умолчанию загружаем 15
-		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset')) : (quantity = 15)
+		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset'), offset = sessionStorage.getItem('offset')) : (quantity = 15, offset = quantity)
 
 		// Если url сохранен в sessionStorage загружаем данные по url, если нет, то загружаем весь список
-		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll()
+		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll(offset)
 
 		// Загружаем покемонов по клику
 		document.getElementById('load').addEventListener("click", ()=> {
@@ -66,7 +66,7 @@
 			offset = quantity;
 
 			// Загружаем весь список покемонов
-			showAll()
+			showAll(offset)
 
 			// Сохраняем в sessionStorage текущее значение количества покемонов
 			sessionStorage.setItem('offset', offset);
@@ -218,7 +218,7 @@
 			quantity = sessionStorage.getItem('offset')
 
 			// Загружаем список покемонов
-			showAll()
+			showAll(offset)
 		}
 
 		// Подгружаем покемонов
