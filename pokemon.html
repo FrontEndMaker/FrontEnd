@@ -31,7 +31,8 @@
 
 	<script>
 		'use strict';
-		let url, offset;
+		let url;
+		let offset = 0;
 		let ol = document.getElementById('pokemons__list');
 		let pokemon = document.getElementsByClassName("description");
 		let quantity = sessionStorage.getItem('quantity');
@@ -42,19 +43,19 @@
 		quantity = document.getElementById('qnt').value
 
 		// Если значение количества сохранено в sessionStorage передаем в input, если нет, то по умолчанию загружаем 15
-		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset'), offset = sessionStorage.getItem('offset')) : (quantity = 15, offset = quantity)
+		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset')) : (quantity = 15)
 
 		// Если url сохранен в sessionStorage загружаем данные по url, если нет, то загружаем весь список
-		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll(offset)
+		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll(0)
 
 		// Загружаем покемонов по клику
 		document.getElementById('load').addEventListener("click", ()=> {
 
 			// Очищаем список покемонов		
-			ol.innerHTML = '';
+			ol.textContent = '';
 
 			// Очищаем данные о покемоне если есть
-			pokemon[0].innerHTML='';
+			pokemon[0].textContent='';
 
 			// Сохраняем в sessionStorage значение количества из input
 			sessionStorage.setItem('quantity', document.getElementById('qnt').value);
@@ -66,7 +67,7 @@
 			offset = quantity;
 
 			// Загружаем весь список покемонов
-			showAll(offset)
+			showAll(0)
 
 			// Сохраняем в sessionStorage текущее значение количества покемонов
 			sessionStorage.setItem('offset', offset);
@@ -81,11 +82,10 @@
 		ol.addEventListener('click', (e) => {
 
 			// Очищаем div со списком покемонов от всех тегов
-			document.getElementById('pokemons__list').innerHTML='';
+			document.getElementById('pokemons__list').textContent='';
 
 			// Очищаем данные о покемоне если есть
-			pokemon[0].innerHTML='';
-
+			pokemon[0].textContent='';
 			var target = e.target;
 			if (target.tagName === 'LI'){
 
@@ -107,21 +107,20 @@
 
 				// Показываем индикатор загрузки пока идет запрос
 				let el = document.getElementsByClassName("loading");
-				el[0].innerHTML = 'Загрузка...';
+				el[0].textContent = 'Загрузка...';
 
 				// Скрываем кнопку подгрузги покемонов, если она есть
 				buttonNext = document.getElementById('next')
 				if(buttonNext) {
 					buttonNext.style.display='none';
 				}
-
 				xhr.open('GET', url, true);
 				xhr.onload = function() {
 					if (this.status == 200) {
 						resolve(this.response);
 
 						// Скрываем индикатор загрузки запроса
-						el[0].innerHTML = '';
+						el[0].textContent = '';
 
 						// Создаем кнопку подгрузки покемонов если ее нет
 						if(!buttonNext) {
@@ -178,7 +177,6 @@
 
 			// Скрываем блок выбора количества
 			block[0].style.display='none';
-
 			httpGet(url)
 			.then(response => {
 				let data = JSON.parse(response);
@@ -189,7 +187,7 @@
 				+ '<p>Рост покемона: ' + data.height + '</p>'
 				+ '<p>Опыт: ' + data.base_experience + '</p>'
 				+ '<button id="back" onclick="getBack()">Назад</button>';
-				pokemon[0].innerHTML=description
+				pokemon[0].innerHTML = description
 
 				// Скрываем кнопку подгрузки покемонов, если она есть
 				buttonNext = document.getElementById('next')
@@ -209,16 +207,16 @@
 			sessionStorage.removeItem('url')
 
 			// Очищаем список покемонов
-			ol.innerHTML = '';
+			ol.textContent = '';
 
 			// Очищаем описание покемонов
-			pokemon[0].innerHTML='';
+			pokemon[0].textContent='';
 
 			// Передаем количество покемонов для создания списка из sessionStorage
 			quantity = sessionStorage.getItem('offset')
 
 			// Загружаем список покемонов
-			showAll(offset)
+			showAll(0)
 		}
 
 		// Подгружаем покемонов
