@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Get</title>
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+	<style>
+	h2 {
+		text-transform: uppercase;
+	}
+	li:hover {
+		color: blue;
+		cursor: pointer
+	}
+</style>
+</head>
+<body>
+	<h1>Покемоны</h1>
+	<hr>
+	<div id="info">
+		<div class="block">
+			<label for="qnt">Введите количество покемонов (1 - 949)</label>
+			<input id="qnt" type="number" min="1" max="949"><br />
+			<button id="load" style="margin: 10px 0">Загрузить</button>
+		</div>
+		<div id="pokemons">
+			<ol id="pokemons__list"></ol>
+			<div class="loading"></div>
+		</div>
+	</div>
+	<div class="description"></div>
+	<script>
+		let url;
+		let offset = 0;
+		let list = $('#pokemons__list');
+		let pokemon = $(".description");
+		let quantity = sessionStorage.getItem('quantity');
+		let buttonNext = $('#next');
+		let block = $(".block");
+
+		// Забираем значение с input
+		quantity = document.getElementById('qnt').value
+
+		// Если значение количества сохранено в sessionStorage передаем в input, если нет, то по умолчанию загружаем 15
+		sessionStorage.getItem('offset') ? (quantity = sessionStorage.getItem('offset')) : (quantity = 15)
+
+		// Если url сохранен в sessionStorage загружаем данные по url, если нет, то загружаем весь список
+		sessionStorage.getItem('url') ? showDescription(sessionStorage.getItem('url')) : showAll(0)
+
+		// Загружаем покемонов по клику
+		$('#load').on("click", ()=> {
+
+			// Очищаем список покемонов		
+			list.html('');
+
+			// Очищаем данные о покемоне если есть
+			pokemon.html('');
+
+			// Сохраняем в sessionStorage значение количества из input
+			sessionStorage.setItem('quantity', $('#qnt').val());
+
+			// Записываем в переменную значение количества из input
+			quantity = $('#qnt').val()
+
+			// Записываем в первоначальный offset значение количества для подгрузки покемонов
+			offset = quantity;
+
+			// Загружаем весь список покемонов
+			showAll(0)
+
+			// Сохраняем в sessionStorage текущее значение количества покемонов
+			sessionStorage.setItem('offset', offset);
+
+			// Скрываем кнопку подрузки покемонов, если она есть
+			if(buttonNext.length != 0) {
+				buttonNext.hide();
+			}
+		})
+
+		// Загрузка всего списка покемонов
+		function showAll(offsetNumber, limitNumber = quantity) {
+			
+			// Настройки Ajax
+			$.ajaxSetup({
+				beforeSend: function() {
+					buttonNext = $('#next');
+
+					// Загружаем картинку загрузки
+					$(".loading").html('Загрузка...');
+
+					// Скрываем кнопку подгрузги покемонов, если она есть
+					if(buttonNext.length != 0) {
+						buttonNext.hide();
+					}
+				},
+				success: function() {
+					buttonNext = $('#next');
+
+					// Скрываем картинку загрузки
+					$(".loading").html('');
+
+					// Создаем кнопку подгрузки покемонов если ее нет
+					if(buttonNext.length == 0) {
+						createNextButton()
+					}
+
+					// Показываем кнопку подгрузки покемонов если она скрыта
+					else if(buttonNext.length != 0) {
+						buttonNext.show();
+					}
+				}
+			});
+
+			// Передаем параметры запроса
+			$.get('https://pokeapi.co/api/v2/pokemon/', { limit: limitNumber, offset: offsetNumber })
+			.done(function(data) {
+
+				//Сохраняем данные в переменную
+				let response = data;
+
+				// Выводим на экран список покемонов
+				response.results.map((pokemon) => {
+					
+					// Записываем url покемона в data-attribute
+					list.append('<li class="pokemon__name" data-url="' + pokemon.url + '">' + pokemon.name + '</li>')
+				});
+
+				// Кликаем по покемону
+				clickOnPokemon()
+			})
+			.fail(function(xhr, status, error) {
+				alert("An AJAX error occured: " + status + "\nError: " + error)
+			})
+		}
+
+		// Клик по покемону
+		function clickOnPokemon() {
+			$('.pokemon__name').on('click', function() {
+
+				// Очищаем div со списком покемонов от всех тегов
+				$('#pokemons__list').html('');
+
+				// Очищаем данные о покемоне если есть
+				pokemon.html('');
+
+				// Достаем url покемона из data-attribute и сохраняем в sessionStorage
+				url = sessionStorage.setItem('url', $(this).attr("data-url"));
+
+				// Сохраняем в sessionStorage текущее количество покемонов в списке
+				sessionStorage.setItem('offset', offset);
+
+				// Достаем url покемона из data-attribute и показываем его описание
+				showDescription($(this).attr("data-url"))
+			})
+		}
+
+		// Описание покемона
+		function showDescription(url) {
+
+			// Скрываем блок выбора количества
+			block.hide();
+
+			//Отправляем запрос
+			$.get(url)
+			.done(function(data) {
+
+				//Сохраняем данные в переменную
+				let response = data;
+
+				// Выводим на экран данные о покемоне
+				let description = '<h2>' + data.name + '</h2>'
+				+ '<p>Вес покемона: ' + data.weight + '</p>'
+				+ '<p>Рост покемона: ' + data.height + '</p>'
+				+ '<p>Опыт: ' + data.base_experience + '</p>'
+				+ '<button id="back" onclick="getBack()">Назад</button>';
+				pokemon.html(description)
+
+				// Скрываем кнопку подгрузки покемонов, если она есть
+				buttonNext = $('#next');
+				if(buttonNext.length != 0) {
+					buttonNext.hide();
+				}
+			})
+			.fail(function(xhr, status, error) {
+				alert("An AJAX error occured: " + status + "\nError: " + error)
+			})
+		}
+
+		// Возвращаемся к списку покемонов
+		function getBack() {
+
+			// Удаляем url в sessionStorage
+			sessionStorage.removeItem('url')
+
+			// Очищаем список покемонов
+			list.html('');
+
+			// Очищаем описание покемонов
+			pokemon.html('');
+
+			// Передаем количество покемонов для создания списка из sessionStorage
+			quantity = sessionStorage.getItem('offset')
+
+			// Показываем блок выбора количества
+			block.show();
+
+			// Загружаем список покемонов
+			showAll(0)
+		}
+
+		function loadNext() {
+
+			// Записываем в первоначальный offset значение количества для подгрузки покемонов
+			offset = quantity;
+
+			// Подгружаем покемонов по клику
+			$('#next').on('click', () => {
+
+				// Загружаем список покемонов с переданными параметрами
+				showAll(offset, 10)
+
+				// Добавляем каждый раз по 10 покемонов в offset для подгрузки
+				offset = Number(offset) + 10;
+
+				// Сохраняем в sessionStorage текущее количество покемонов в списке
+				sessionStorage.setItem('offset', offset);
+			})
+		}
+
+		function createNextButton() {
+			let button = '<button id="next">Следующие 10</button>';
+			$("#pokemons").append(button);
+
+			// Подгружаем покемонов по клику
+			loadNext()
+		}
+	</script>
+</body>
+</html>

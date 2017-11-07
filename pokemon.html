@@ -152,7 +152,7 @@
 			block[0].style.display='block';
 
 			// Передаем параметры запроса
-			httpGet('http://pokeapi.co/api/v2/pokemon?limit=' + limitNumber + '&offset=' + offsetNumber)
+			httpGet('https://pokeapi.co/api/v2/pokemon?limit=' + limitNumber + '&offset=' + offsetNumber)
 			.then(response => {
 				let data = JSON.parse(response);
 
