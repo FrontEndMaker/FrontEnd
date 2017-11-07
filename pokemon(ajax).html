@@ -85,7 +85,7 @@
 				dataType: 'json',
 				method: 'get',
 				data: {limit: limitNumber, offset: offsetNumber},
-				beforeSend: function() {
+				beforeSend() {
 					buttonNext = $('#next');
 
 					// Загружаем картинку загрузки
@@ -96,7 +96,7 @@
 						buttonNext.hide();
 					}
 				},
-				success: function(data) {
+				success(data) {
 					buttonNext = $('#next');
 
 					// Скрываем картинку загрузки
@@ -118,9 +118,9 @@
 					// Выводим на экран список покемонов
 					response.results.map((pokemon) => {
 
-					// Записываем url покемона в data-attribute
-					list.append('<li class="pokemon__name" data-url="' + pokemon.url + '">' + pokemon.name + '</li>')
-				});
+						// Записываем url покемона в data-attribute
+						list.append('<li class="pokemon__name" data-url="' + pokemon.url + '">' + pokemon.name + '</li>')
+					});
 
 					// Кликаем по покемону
 					clickOnPokemon()
@@ -165,7 +165,7 @@
 				url: url,
 				dataType: 'json',
 				method: 'get',
-				beforeSend: function() {
+				beforeSend() {
 					buttonNext = $('#next');
 
 					// Загружаем картинку загрузки
@@ -176,7 +176,7 @@
 						buttonNext.hide();
 					}
 				},
-				success: function(data) {
+				success(data) {
 					
 					// Скрываем картинку загрузки
 					$(".loading").html('');
@@ -229,6 +229,7 @@
 			showAll(0)
 		}
 
+		// Подгрузка покемонов
 		function loadNext() {
 
 			// Записываем в первоначальный offset значение количества для подгрузки покемонов
@@ -248,6 +249,7 @@
 			})
 		}
 
+		// Кнопка подгрузки покемонов
 		function createNextButton() {
 			let button = '<button id="next">Следующие 10</button>';
 			$("#pokemons").append(button);

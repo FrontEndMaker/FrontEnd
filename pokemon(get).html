@@ -82,7 +82,7 @@
 			
 			// Настройки Ajax
 			$.ajaxSetup({
-				beforeSend: function() {
+				beforeSend() {
 					buttonNext = $('#next');
 
 					// Загружаем картинку загрузки
@@ -93,7 +93,7 @@
 						buttonNext.hide();
 					}
 				},
-				success: function() {
+				success() {
 					buttonNext = $('#next');
 
 					// Скрываем картинку загрузки
@@ -113,7 +113,7 @@
 
 			// Передаем параметры запроса
 			$.get('https://pokeapi.co/api/v2/pokemon/', { limit: limitNumber, offset: offsetNumber })
-			.done(function(data) {
+			.done((data) => {
 
 				//Сохраняем данные в переменную
 				let response = data;
@@ -128,7 +128,7 @@
 				// Кликаем по покемону
 				clickOnPokemon()
 			})
-			.fail(function(xhr, status, error) {
+			.fail((xhr, status, error) => {
 				alert("An AJAX error occured: " + status + "\nError: " + error)
 			})
 		}
@@ -162,7 +162,7 @@
 
 			//Отправляем запрос
 			$.get(url)
-			.done(function(data) {
+			.done((data) => {
 
 				//Сохраняем данные в переменную
 				let response = data;
@@ -181,7 +181,7 @@
 					buttonNext.hide();
 				}
 			})
-			.fail(function(xhr, status, error) {
+			.fail((xhr, status, error) => {
 				alert("An AJAX error occured: " + status + "\nError: " + error)
 			})
 		}
@@ -208,6 +208,7 @@
 			showAll(0)
 		}
 
+		// Функция подгрузки покемонов
 		function loadNext() {
 
 			// Записываем в первоначальный offset значение количества для подгрузки покемонов
@@ -227,6 +228,7 @@
 			})
 		}
 
+		// Кнопка подгрузки покемонов
 		function createNextButton() {
 			let button = '<button id="next">Следующие 10</button>';
 			$("#pokemons").append(button);
